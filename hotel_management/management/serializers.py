@@ -39,6 +39,7 @@ class HotelSerializer(serializers.ModelSerializer):
 
 
 class RoomSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Room
         exclude = ('user', 'created_at')
@@ -52,7 +53,7 @@ class BookingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Booking
-        fields = ['user_id', 'room_id', 'hotel_id', 'date_of_booking', 'date_of_stay', 'last_date_of_stay',
+        fields = ['user_id', 'room_id', 'hotel_id', 'date_of_booking', 'status', 'date_of_stay', 'last_date_of_stay',
                   'number_of_days']
 
     def get_number_of_days(self, obj):

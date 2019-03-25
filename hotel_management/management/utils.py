@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from django.contrib.auth.models import User
 from django.db.models import Q
@@ -72,9 +72,17 @@ def show_bookings(request, paginator):
     user_id = params.get('user_id')
     room_id = params.get('room_id')
     status = params.get('status')
-    date_of_booking = params.get('date_of_booking')
-    date_of_stay = params.get('date_of_stay')
     sort_by = params.get('sort_by', [])
+
+    try:
+        date_of_booking = datetime.strptime(params.get('date_of_booking'), "%Y-%m-%d %H:%M:%S") \
+            if params.get('date_of_booking') else None
+        date_of_stay = datetime.strptime(params.get('date_of_stay'), "%Y-%m-%d %H:%M:%S") \
+            if params.get('date_of_stay') else None
+
+    except ValueError:
+        return Response(data={'error': ERROR_MESSAGES['INVALID_DATETIME_FORMAT'].format('YYYY-MM-DD HH:MM:SS')},
+                        status=HTTP_400_BAD_REQUEST)
 
     sort_by_fields = []
     sort_by_order = []
@@ -83,14 +91,14 @@ def show_bookings(request, paginator):
         sort_by_order.append(record.get('order', ''))
 
     booking_fields = [field.attname for field in Booking._meta.fields]
-    invalid_fields = [field for field in sort_by_fields if field not in booking_fields]
+    invalid_fields = [field for field in sort_by_fields if field and field not in booking_fields]
     if invalid_fields:
-        return Response(data=ERROR_MESSAGES['INVALID_FIELDS'].format(', '.join(invalid_fields)),
+        return Response(data={'error': ERROR_MESSAGES['INVALID_FIELDS'].format(', '.join(invalid_fields))},
                         status=HTTP_400_BAD_REQUEST)
 
     invalid_orders = set(sort_by_order).difference(set({'1', '0'}))
     if invalid_orders:
-        return Response(data=ERROR_MESSAGES['INVALID_ORDER'].format(', '.join(invalid_orders)),
+        return Response(data={'error': ERROR_MESSAGES['INVALID_ORDER'].format(', '.join(invalid_orders))},
                         status=HTTP_400_BAD_REQUEST)
 
     sort_by_params = []
@@ -107,14 +115,21 @@ def show_bookings(request, paginator):
         queryset = queryset.filter(room_id=room_id)
     if status:
         queryset = queryset.filter(status=status)
+
     if date_of_booking:
-        queryset = queryset.filter(date_of_booking=date_of_booking)
+        date_of_booking = date_of_booking.replace(hour=0, minute=0, second=0, microsecond=0)
+        queryset = queryset.filter(date_of_booking__gte=date_of_booking,
+                                   date_of_booking__lte=date_of_booking + timedelta(days=1))
+
     if date_of_stay:
-        queryset = queryset.filter(date_of_stay=date_of_stay)
+        date_of_stay = date_of_stay.replace(hour=0, minute=0, second=0, microsecond=0)
+        queryset = queryset.filter(date_of_stay__gte=date_of_stay,
+                                   date_of_stay__lte=date_of_stay + timedelta(days=1))
+
     queryset = queryset.order_by(*sort_by_params)
 
     page = paginator.paginate_queryset(queryset, request)
-    room_serializer = RoomSerializer(page, many=True)
+    room_serializer = BookingSerializer(page, many=True)
     return paginator.get_paginated_response(room_serializer.data)
 
 

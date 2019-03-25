@@ -61,12 +61,12 @@ class AddressAdmin(admin.ModelAdmin):
 
 
 class HotelAdmin(admin.ModelAdmin):
-    list_display = ('name', 'address', 'contact_number', )
+    list_display = ('id', 'name', 'address', 'contact_number', )
     search_fields = ('name', 'address', 'contact_number', )
 
 
 class RoomAdmin(admin.ModelAdmin):
-    list_display = ('hotel', 'user', 'type', 'status', 'price', )
+    list_display = ('id', 'hotel', 'user', 'type', 'status', 'price', )
     search_fields = ('hotel', 'user', 'type', 'status', 'price', )
     list_filter = ('hotel', )
 

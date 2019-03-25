@@ -36,7 +36,8 @@ ERROR_MESSAGES = {
     'INVALID_BOOKING_DATES': "date of stay {} cannot be less than last date of stay {}",
     'INVALID_ID': "{} ID {} not found",
     'BOOKING_IS_CANCELLED': 'the booking id {} is cancelled. No checkin/checkout',
-    'INVALID_DATETIME_FORMAT': "the datetime format for date of stay or last date of stay is invalid. Desired format {}",
+    'INVALID_DATETIME_FORMAT': "the datetime format for date of booking, date of stay or last date of stay is invalid. "
+                               "Desired format {}",
 }
 
 SUCCESS_MESSAGE = {
